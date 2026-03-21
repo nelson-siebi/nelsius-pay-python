@@ -25,3 +25,6 @@ classifiers = [
 "Homepage" = "https://nelsius.com"
 "Bug Tracker" = "https://github.com/nelson-siebi/nelsius-pay-python/issues"
 "Source" = "https://github.com/nelson-siebi/nelsius-pay-python"
+
+[project.scripts]
+nelsius-pay = "nelsius.cli:main"
