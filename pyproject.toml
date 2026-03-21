@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nelsius-pay"
+version = "1.0.0"
+authors = [
+  { name="Nelson Siebi", email="nelsonsiebi237@gmail.com" },
+]
+description = "Official Python SDK for the Nelsius Developer API"
+readme = "README.md"
+requires-python = ">=3.7"
+dependencies = [
+    "requests>=2.25.0",
+]
+keywords = ["nelsius", "payments", "sdk", "api"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+"Homepage" = "https://nelsius.com"
+"Bug Tracker" = "https://github.com/nelson-siebi/nelsius-pay-python/issues"
+"Source" = "https://github.com/nelson-siebi/nelsius-pay-python"
