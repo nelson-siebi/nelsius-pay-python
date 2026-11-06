@@ -1,6 +1,6 @@
-# Nelsius Python SDK
+# NelsiusPay Python SDK (V2)
 
-Official Python SDK for the [Nelsius Developer API](https://nelsius.com/api-doc).
+SDK officiel Python pour intégrer la passerelle de paiement **NelsiusPay** dans vos applications Django, Flask, FastAPI ou scripts automatisés.
 
 ## Installation
 
@@ -8,46 +8,67 @@ Official Python SDK for the [Nelsius Developer API](https://nelsius.com/api-doc)
 pip install nelsius-pay
 ```
 
-## Quick Start
+## Initialisation
 
 ```python
-from nelsius import Nelsius
+from nelsius_pay import NelsiusClient
 
-# Initialize the client
-nelsius = Nelsius('your_secret_key', {
-    'verify_ssl': False  # Set to False for local development
-})
-
-# 1. Get available payment methods
-methods = nelsius.methods('CM', 'XAF')
-print("Available methods:", methods)
-
-# 2. Create a Checkout Session
-session = nelsius.checkout.create_session({
-    'amount': 5000,
-    'currency': 'XAF',
-    'reference': 'ORDER_12345',
-    'return_url': 'https://yoursite.com/success',
-    'customer': {
-        'email': 'client@example.com',
-        'name': 'Jean Dupont'
-    }
-})
-
-if session.get('success'):
-    print("Checkout URL:", session['data']['checkout_url'])
-
-# 3. Direct Charge (Mobile Money)
-charge = nelsius.charge.create({
-    'amount': 2000,
-    'currency': 'XAF',
-    'payment_method': 'orange_money_cm',
-    'phone': '690000000',
-    'reference': 'REF_999'
-})
-print("Charge Result:", charge)
+client = NelsiusClient(
+    api_key="np_live_xxxxxxxxxxxxxxxx",
+    secret_key="whsec_xxxxxxxxxxxxxxx"
+)
 ```
 
-## Documentation
+## 1. Créer une session de paiement hébergée (Hosted Checkout)
 
-For full details on the parameters and responses, visit the [official documentation](https://nelsius.com/docs).
+```python
+session = client.checkout.create_session(
+    amount=5000,
+    currency="XAF",
+    reference="CMD-94812",
+    customer_email="client@example.com",
+    customer_phone="+237690000000",
+    customer_name="Jean Dupont",
+    default_country="CM",  # Cameroun par défaut (ou CI, SN, BJ...)
+    return_url="https://monsite.com/commande/succes",
+    cancel_url="https://monsite.com/commande/annulee",
+    description="Abonnement mensuel Pro"
+)
+
+# Redirigez votre client vers l'URL sécurisée :
+print(session["data"]["checkout_url"])
+```
+
+## 2. Débit direct Mobile Money (Server-to-Server USSD)
+
+```python
+charge = client.charges.direct_pay(
+    amount=2500,
+    currency="XAF",
+    operator="orange",  # ou mtn
+    phone="699000000",
+    customer_name="Alice Ngo",
+    reference="REF-8849"
+)
+
+print(charge["message"])  # Prompt USSD envoyé sur le téléphone du client
+```
+
+## 3. Vérifier un webhook sécurisé HMAC-SHA256
+
+```python
+@app.route("/webhooks/nelsius", methods=["POST"])
+def nelsius_webhook():
+    payload = request.get_data()
+    signature = request.headers.get("X-Nelsius-Signature")
+    
+    try:
+        event = client.webhooks.construct_event(payload, signature)
+        if event["event"] == "payment.success":
+            tx = event["data"]
+            print(f"Paiement validé : {tx['amount']} {tx['currency']}")
+        return {"status": "ok"}, 200
+    except Exception as e:
+        return {"error": str(e)}, 400
+```
+
